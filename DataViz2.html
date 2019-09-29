@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<!--The code is modified from: https://jasonneylon.wordpress.com/2013/09/05/two-sided-horizontal-barchart-using-d3-js/-->
+<html>
+<head>
+    <title>Bar Chart</title>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <link href='http://fonts.googleapis.com/css?family=Karla|Quantico|Audiowide|Quicksand|Arvo' rel='stylesheet' type='text/css'>
+    <meta name="viewport" content="initial-scale = 1.0,maximum-scale = 1.0" />
+    <style type="text/css">
+
+.node circle {
+   fill: #fff;
+   stroke: steelblue;
+   stroke-width: 3px;
+ }
+
+ .node text { font: 12px sans-serif; }
+
+ .link {
+   fill: none;
+   stroke: #ccc;
+   stroke-width: 2px;
+ }
+ .body 
+        .chart {
+            display: block;
+            margin: auto;
+        }
+
+        .viz {
+            width: 600px;
+            height: 20px;
+            display: block;
+            margin: auto;
+        }
+
+        .chart .right {
+            stroke: white;
+            fill: indianred;
+        }
+
+        .chart .left {
+            stroke: white;
+            fill: steelblue;
+        }
+
+        .chart rect:hover {
+            fill: #64707d;
+        }
+
+        .chart text {
+            /* fill: #24da82; */
+        }
+
+        .chart text.name {
+            fill: black;
+            font-weight:bold;
+        }
+
+        .chart text.leftscore {
+            fill: black;
+            font-weight:bold;
+        }
+
+        .chart text.score {
+            fill: black;
+            font-weight:1000;
+        }
+
+        .chart text.title {
+            fill: #2216ff;
+        }
+        select {
+            text-align:center;
+            height: 40px;
+            font-size: 20px;
+        }
+        button {
+            height: 44px;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+<h1 align="center" id = "title" style ="font-size: 40px; font-family: Arvo">Australian Open Tennis Tournament</h1>
+<div id ="drop" align=center></div>
+<script type="text/javascript">
+function selectDataset() {
+
+    // console.log(d3.keys(dataset))
+    // console.log(d3.keys(dataset["player1"]))
+    round.selectAll("option")
+                .data(d3.map(dataset, function(d){return  d.round[0].toUpperCase() + d.round.substring(1);}).keys())
+                .enter()
+                .append("option")
+                .text(function(d) {
+                    return d;
+                });
+
+    year.selectAll("option")
+                .data(d3.map(dataset, function(d){return d.year;}).keys())
+                .enter()
+                .append("option")
+                .text(function(d) {
+                    return d;
+                });
+    yearSel = d3.select("#dropdownYear").node().value;
+    roundSel = d3.select("#dropdownRound").node().value;
+    removeOptions(d3.select("#dropdownMatch").node())
+    var matchData = []
+    for (i = 0; i < dataset.length ; i++) {
+        if(dataset[i]["year"] == parseInt(yearSel) && dataset[i]["round"].trim().toLowerCase() == roundSel.toLowerCase()) {
+            console.log(dataset[i])
+            matchData.push(dataset[i]["player1"]+ " - " +dataset[i]["player2"])
+        }
+        
+    }
+    
+    console.log(yearSel);
+    console.log(roundSel);
+// console.log(matchData[0]);
+
+match.selectAll("option")
+                .data(matchData, function(d){return d;})
+                .enter()
+                .append("option")
+                .text(function(d) {
+                    return d;
+                });
+    if(flag) move();
+
+}
+
+function removeOptions(selectbox) {
+        var i;
+        for (i = selectbox.options.length - 1; i >= 0; i--) {
+            selectbox.remove(i);
+        }
+    }
+  function move() {
+  // console.log(d3.keys(dataset[1]))
+  console.log(dataset)
+
+  if(dataset.length != 1386)
+    dataset = dataset[0]
+
+yearSel = d3.select("#dropdownYear").node().value;
+// yearSel = yearSel.options[yearSel.selectedIndex].value
+roundSel = d3.select("#dropdownRound").node().value;
+matchSel = d3.select("#dropdownMatch").node().value;
+// roundSel = roundSel.options[roundSel.selectedIndex].value
+console.log(yearSel);
+console.log(roundSel);
+console.log(matchSel);
+
+var index = matchSel.indexOf("-");
+var player1 = matchSel.substring(0, index-1);
+var player2 = matchSel.substring(index + 2, matchSel.lenghth);
+
+// console.log(index);
+console.log(player1);
+console.log(player2);
+// console.log(dataset);
+
+for (i = 0; i < dataset.length ; i++) {
+    if(dataset[i]["player1"].trim() == player1 && dataset[i]["player2"].trim() == player2 && yearSel == dataset[i]['year']
+    && roundSel.toLowerCase() == dataset[i]['round'].toLowerCase()) {
+        console.log(dataset[i])
+        render(dataset[i]);
+        break;
+    }   
+    }
+flag = false;
+}
+
+    function test(data){
+        // console.log(data)
+    }
+    
+    function render(data) {
+    var tempColor;
+    var i;
+    console.log(data)
+    var names = [];
+    var leftData = [];  
+    var rightData = [];
+    for (i = 0; i < nameHeader.length; i ++) {
+        names.push(nameHeader[i]);
+        leftData.push(data[dataHeader[i] + "1"]);
+        rightData.push(data[dataHeader[i] + "2"]);
+    }
+    // console.log(leftData);
+    // console.log(rightData)
+
+    // labelArea = 160;
+    width = window.outerWidth * 0.245;
+    screenWidth = window.outerWidth;
+    console.log("width ne :" + width)
+    // bar_height = 20;
+    height = bar_height * 6 * (names.length);
+    rightOffset = screenWidth*position + width + labelArea;
+    // .append('svg')
+    // .attr('class', 'chart')
+    // .attr('width', labelArea + width + width)
+    // .attr('height', height);
+    // console.log("d3.max(leftData) " + d3.max(leftData))
+    // console.log("width/4 " + width/4)
+    var xFrom = d3.scale.linear()
+        .domain([0, 100])
+        .range([0, width]);
+    var y = d3.scale.ordinal()
+        .domain(names)
+        .rangeBands([300, height/2]);
+    // console.log("yPosByIndex ne: ")
+    // console.log(y)
+    // var info = names
+    var yPosByIndex = function(d, index){ return index*bar_height/4 + y(names[index]); }
+    svg.selectAll("text").remove()
+    svg.selectAll(".left").remove();
+    svg.selectAll(".leftscore").remove();
+    svg.selectAll(".name").remove();
+    svg.selectAll(".right").remove();
+    svg.selectAll(".score").remove();
+
+    var chart = svg.selectAll(".left");
+    var score;
+    chart.data(leftData)
+    .enter().append("rect")
+    .on('mouseover', function(d,index) {
+        // alert(index);
+        // console.log(svg.selectAll(".leftscore"))
+        score = svg.selectAll(".leftscore")[0][index];
+        // leftscore.style('opacity', .5)
+        d3.select(score).transition().ease('linear').duration(200)
+        .style("font-size", labelArea*0.1 + 'px')
+        d3.select(this).transition().ease('linear').duration(200)
+            .style('opacity', 1)
+            .style('fill', '#000080')
+            .style('stroke', '#000080');
+    })
+        .on('mouseout', function(d) {
+            d3.select(score).transition().ease('linear').duration(200).style('opacity', 1).style("font-size", labelArea*0.08 + 'px')
+        d3.select(this).transition().ease('bounce').duration(500)
+            .style('opacity', 1)
+            .style('fill', 'steelblue')
+            .style('stroke', 'none');
+    }).transition()
+    .attr("x",screenWidth*position + width)
+    .attr("y", yPosByIndex)
+    .attr("class", "left").attr("width",0).attr("height", y.rangeBand()).transition().ease('bounce').duration(1000)
+    .attr("x", function(d, index){//console.log("data: " + parseInt(leftData[index] * 100/ (leftData[index] + rightData[index])));
+        var stat;
+        if(percent[index] == false) stat = parseInt(leftData[index] * 100/ (leftData[index] + rightData[index]));
+        else stat = leftData[index]
+        return screenWidth*position + width - xFrom(stat);})
+    .attr("width",function(d, index){
+        var stat;
+        if(percent[index] == false) stat = parseInt(leftData[index] * 100/ (leftData[index] + rightData[index]));
+        else stat = leftData[index]
+        // console.log(stat)
+        // console.log(xFrom(stat))
+        return xFrom(stat);})
+    
+
+    // chart.remove();
+    // console.log("text.leftscore")
+    chart = svg.selectAll(".leftscore");
+    chart.data(leftData)
+    .enter().append("text")
+    .attr("x", function(d,index) { 
+        var stat;
+        if(percent[index] == false) {
+            if (leftData[index] + rightData[index] != 0)
+                stat = parseInt(leftData[index] * 100/ (leftData[index] + rightData[index]));
+            else
+                stat = 0
+        }
+        else stat = leftData[index]
+        // console.log(width - 30 - xFrom(stat))
+        return screenWidth*(position - 0.016) + width - xFrom(stat); })
+    .attr("y", function(d, z){ return z*bar_height/4 + y(names[z]) + y.rangeBand()/2; } )
+    .attr("dx", "20")
+    .attr("dy", ".36em")
+    .style("font-size", labelArea*0.08 + 'px')
+    .attr("text-anchor", "end")
+    .attr('class', 'leftscore').attr('opacity',0)
+    //.text(String);
+    .text( function (d,index) {
+        if(percent[index] == false) return leftData[index];
+        else return leftData[index] + "%";})
+    .transition().ease('bounce').duration(1000).attr('opacity',1)
+    // chart.remove();
+
+
+    // console.log("text.name")
+    chart = svg.selectAll(".name");
+    chart.data(names)
+    .enter().append("text")//.style("font-family", 'Karla')
+    .attr("x", (labelArea / 2) + screenWidth*position + width)
+    .attr("y", function(d,index){return index*bar_height/4 + y(d) + y.rangeBand()/2; } )
+    .attr("dy", ".20em")
+    .style("font-size", labelArea*0.09 + 'px')
+    .attr("text-anchor", "middle")
+    .attr('class', 'name')
+    .text(String)   .on('mouseover', function(d,index) {
+        // alert(index);
+        tempColor = this.style.fill;
+        // console.log(svg.selectAll(".score"))
+        score = svg.selectAll(".leftscore")[0][index];
+        // leftscore.style('opacity', .5)
+        d3.select(score).transition().ease('linear').duration(200)
+        .style("font-size", labelArea*0.1 + 'px')
+        score = svg.selectAll(".left")[0][index];
+        d3.select(score).transition().ease('linear').duration(200)
+            .style('opacity', 1)
+            .style('fill', '#000080')
+            .style('stroke', '#000080');
+
+        rightscore = svg.selectAll(".score")[0][index];
+        temprightColor = rightscore.style.fill;
+        // leftscore.style('opacity', .5)
+        d3.select(rightscore).transition().ease('linear').duration(200)
+        .style("font-size", labelArea*0.1 + 'px')
+        rightscore = svg.selectAll(".right")[0][index];
+        d3.select(rightscore).transition().ease('linear').duration(200)
+            .style('opacity', 1)
+            .style('fill', '#7C0A02')
+            .style('stroke', '#7C0A02');
+    })
+        .on('mouseout', function(d,index) {
+            score = svg.selectAll(".leftscore")[0][index];
+            d3.select(score).transition().ease('linear').duration(200).style('opacity', 1).style("font-size", labelArea*0.08 + 'px')
+            rightscore = svg.selectAll(".score")[0][index];
+            d3.select(rightscore).transition().ease('linear').duration(200).style('opacity', 1).style("font-size", labelArea*0.08 + 'px')
+            score = svg.selectAll(".left")[0][index];
+            d3.select(score).transition().ease('bounce').duration(500)
+                .style('opacity', 1)
+                .style('fill', 'steelblue')
+                .style('stroke', 'none');
+            rightscore = svg.selectAll(".right")[0][index];
+            d3.select(rightscore).transition().ease('bounce').duration(500)
+                .style('opacity', 1)
+                .style('fill', 'indianred')
+                .style('stroke', 'white');    
+    });
+    // chart.remove();
+
+    
+    var xTo = d3.scale.linear()
+        .domain([0, 100])
+        .range([0, width]);
+
+
+    chart = svg.selectAll(".right");
+    chart.data(rightData)
+    .enter().append("rect")
+    .attr("x", rightOffset)
+    .attr("y", yPosByIndex)
+    .attr("class", "right").attr("width",0).attr("height", y.rangeBand())
+    .on('mouseover', function(d,index) {
+        // alert(index);
+        tempColor = this.style.fill;
+        // console.log(svg.selectAll(".score"))
+        score = svg.selectAll(".score")[0][index];
+        // leftscore.style('opacity', .5)
+        d3.select(score).transition().ease('linear').duration(200)
+        .style("font-size", labelArea*0.1 + 'px')
+        d3.select(this).transition().ease('linear').duration(200)
+            .style('opacity', 1)
+            .style('fill', '#7C0A02')
+            .style('stroke', '#7C0A02');
+    })
+        .on('mouseout', function(d) {
+            d3.select(score).transition().ease('linear').duration(200).style('opacity', 1).style("font-size", labelArea*0.08 + 'px')
+        d3.select(this).transition().ease('bounce').duration(500)
+            .style('opacity', 1)
+            .style('fill', 'indianred')
+            .style('stroke', 'white');
+    }).transition().ease('bounce').duration(1000)
+    .attr("width", function(d, index){
+        var stat;
+        if(percent[index] == false) {
+            if (leftData[index] + rightData[index] != 0)
+                stat = parseInt(rightData[index] * 100/ (leftData[index] + rightData[index]));
+            else
+                stat = 0
+        }
+        else stat = rightData[index]
+        return xTo(stat);})
+
+    chart = svg.selectAll(".score");
+    chart.data(rightData)
+    .enter().append("text").attr('opacity',0)
+    .attr("x", function(d,index) { 
+    var stat;
+    if(percent[index] == false) stat = parseInt(rightData[index] * 100/ (leftData[index] + rightData[index]));
+    else stat = rightData[index]
+    return 10 + xTo(stat) +  rightOffset; })
+    .attr("y", function(d,z){ return z*bar_height/4 +y(names[z]) + y.rangeBand()/2; } )
+    .attr("dx", -5)
+    .attr("dy", ".36em")
+    .attr('class', 'score')
+    .style("font-size", labelArea*0.08 + 'px')
+    //.text(String);
+    .text( function (d,index) {
+        if(percent[index] == false) return rightData[index];
+        else return rightData[index] + "%";})
+    .transition().ease('bounce').duration(1000).attr('opacity',1)
+    // chart.remove();
+    svg.append("text").attr("x",screenWidth*0.075 - data["player1"].length*14.35/2).attr("y", 600).attr("class","title").text(data["player1"]).style("font-size", "25px").style('fill','black');
+    svg.append("text").attr("x",screenWidth - screenWidth*0.075 - data["player2"].length*14.35/2).attr("y", 600).attr("class","title").text(data["player2"]).style("font-size", "25px").style('fill','black');
+    //svg.append("text").attr("x",width+labelArea/2).attr("y", 30).attr("class","title").text(data["results"]);
+    svg.selectAll(".player").remove()
+    svg.append("svg:image")
+    .attr('x', 0)
+    .attr('y', 250)
+    .attr('width', screenWidth*0.15)
+    .attr('height', 300)
+    .attr('class','player')
+    .attr("xlink:href", "image/"+ data["player1"] + ".png")
+
+    svg.append("svg:image")
+    .attr('x', screenWidth - screenWidth*0.15)
+    .attr('y', 250)
+    .attr('width', screenWidth*0.15)
+    .attr('height', 300)
+    .attr('class','player')
+    .attr("xlink:href", "image/"+ data["player2"] + ".png")
+    
+
+    var title = "Australian Open " + data['year'] + " - " + data['round'][0].toUpperCase() + data['round'].substring(1);
+    svg.append('text')
+    .attr('x', screenWidth*0.5 - title.length*11.5)
+    .attr('y', 70).style("font-size", "40px")
+    .style("font-family", 'Quicksand')
+    .style("font-weight", 'bold')
+    .text(title)
+    
+    var winner = data["player1"] + " beat " + data["player2"]
+    svg.append('text')
+    .attr('x', screenWidth*0.5 - winner.length*11.5)
+    .attr('y', 120).style("font-size", "40px")
+    .style("font-family", 'Quicksand')
+    .style("font-weight", 'bold')
+    .text(winner)
+
+    svg.append('text')
+    .attr('x', screenWidth*0.5 - data["results"].length*11.5)
+    .attr('y', 170).style("font-size", "40px")
+    .style("font-family", 'Quicksand')
+    .style("font-weight", 'bold')
+    .text(data["results"])
+
+    var matchStat = "Match Stat"
+    svg.append('text')
+    .attr('x', screenWidth*0.5 - matchStat.length*11.5)
+    .attr('y', 240).style("font-size", "40px")
+    .style("font-family", 'Quicksand')
+    .style("font-weight", 'bold')
+    .text(matchStat)
+    }
+
+
+
+    var year = d3.select("#drop")
+    	.append("select")
+    	.attr("id","dropdownYear")
+    	.on("change", function(d){
+            selectDataset();})
+
+    var round = d3.select("#drop")
+    	.append("select")
+    	.attr("id","dropdownRound")
+    	.on("change", function(d){
+        	selectDataset();})
+
+    var match = d3.select("#drop")
+    	.append("select").attr('width', window.outerWidth*0.2 + 'px')
+    	.attr("id","dropdownMatch")
+    	.on("click", function(d){
+            })
+
+    // var data = [{label: "Click me",     x: width / 4, y: height / 4 },
+    // {label: "Click me too", x: width / 2, y: height / 2 }];
+
+    var button = d3.select("#drop").append('button')
+    .attr('id', 'buttonClick').text("Update")
+    .on('click', function(d) {
+        move()})
+
+    var drop = document.getElementById('drop')
+    drop.style.position = "absolute";
+    
+    var yearSel = d3.select("#dropdownYear").node().value;;
+    var roundSel = d3.select("#dropdownRound").node().value;;
+    var matchSel;
+    
+    var labelArea = window.outerWidth * 0.1,
+            width = window.outerWidth * 0.4,
+            bar_height = 20;
+    var height = bar_height*55;;
+    // var schedule = d3.select("body")
+    // .append('svg')
+    // .attr('class', 'schedule')
+    // .attr('width', labelArea + width + width)
+    // .attr('height', bar_height*15);
+    // console.log("width " + window.screen.availWidth)
+    // console.log("height " + window.screen.availHeight)
+    // console.log("height aaa " + bar_height)
+    
+
+    drop.style.top = 90 + "px";
+    drop.style.left = window.outerWidth * 0.5 - 280 + "px";
+    // report.style.width = window.outerWidth + "px";
+
+    var svg = d3.select("body")
+    .append('svg')
+    .attr('class', 'chart')
+    .attr('width', 2*labelArea + width + width)
+    .attr('height', height);
+    
+    svg.append("rect")
+    .attr("x", '17.5%')
+    .attr("y", 200)
+    .attr("width", '65%')
+    .attr("height", height/2 + 200)
+    .attr("stroke", 'black')
+    .attr("stroke-width", '5')
+    .attr("fill", 'none')
+    .attr("class","rectan")
+    .on('mouseover', function(d) {
+        this.style.fill = "none";
+    });
+    
+    // svg.append("svg:image")
+    // .attr('x', '17.5%')
+    // .attr('y', 200)
+    // .attr('width', rectan.clientWidth)
+    // .attr('height', rectan.clientHeight)
+    // .attr('opacity',0.8)
+    // .attr("xlink:href", "image/Field7.png")
+
+    svg.append("line")
+    .attr("x1", '17.5%')
+    .attr("y1", 200 + 50)
+    .attr("x2", "82.5%")
+    .attr("y2", 200 + 50)
+    .attr("stroke", 'black')
+    .attr("stroke-width", '5')
+    .attr("fill", 'white')
+    .on('mouseover', function(d) {
+        this.style.fill = "white";
+    });
+
+
+
+    // d3.select("svg.chart").attr("align","center");
+
+    var flag = true
+    const position = 0.2
+    const percent = [false,false,true,true,true,true,false,false,false,true,false,false,false,true]
+    const nameHeader = ["Aces","Double faults","Break points won","1st Point Won","2nd Point Won","1st Serve",
+    "Fastest serve", "1st Serve Average", "2nd Serve Average","Return points won","Total points won","Winners","Error","Net points won"]
+    const dataHeader = ["ace","double","break","firstPointWon", "secPointWon", "firstServe", "fastServe",
+    "avgFirstServe","avgSecServe", "return", "total", "winner", "error", "net"];
+
+    function type(d) {
+        i = i + 1;
+        // d["gdp"] = +d["gdp"];
+        // d["infant.mortality"] = +d["infant.mortality"];
+        // console.log(d.round);
+        // var player1 = d3.keys(d["player1"]);
+        // var player2 = d3.keys(d["player2"]);
+        // console.log(player1)
+        // console.log(player2)
+        for (i = 0; i < dataHeader.length; i ++) {
+            // console.log(dataHeader[i] + "1")
+            d[dataHeader[i] + "1"] = +d[dataHeader[i] + "1"];
+            d[dataHeader[i] + "2"] = +d[dataHeader[i] + "2"];
+        }
+        d["year"] = +d["year"];
+        // console.log(d);
+        dataset.push(d)
+        return d;
+    }
+    i = 0
+    i = i + 1
+    console.log(i)
+    var dataset = []
+    i = i - 1
+    d3.csv("DataViz1-Dataset.csv", type, test);
+    setTimeout(function(){
+selectDataset();
+},200);
+
+</script>
+</body>
+</html>
